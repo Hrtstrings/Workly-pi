@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workly | Pi Freelance Marketplace</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         :root { --pi-purple: #632d95; --pi-gold: #ffa500; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f4f9; }
         header { background: var(--pi-purple); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
         .hero { background: white; padding: 60px 20px; text-align: center; border-bottom: 3px solid var(--pi-gold); }
-        .btn { background: var(--pi-purple); color: white; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; }
+        .btn { background: var(--pi-purple); color: white; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; border: none; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; padding: 20px; }
         .card { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .card i { font-size: 2rem; display: block; margin-bottom: 10px; }
+        .card b { display: block; margin-top: 10px; }
     </style>
-</head><script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
 <body>
 
 <header>
@@ -25,26 +26,28 @@
 <div class="hero">
     <h1>The Talent Economy of Pi</h1>
     <p>Hire global experts or earn Pi by sharing your skills.</p>
-    <a href="post-job.html" class="btn">Post a Job</a>
+    <button onclick="alert('Post Job feature coming soon!')" class="btn">Post a Job</button>
 </div>
 
 <div class="grid">
-    <div class="card">💻<br><b>Development</b></div>
-    <div class="card">✍️<br><b>Writing</b></div>
-    <div class="card">🎨<br><b>Design</b></div>
-    <div class="card">🛠️<br><b>Tasks</b></div>
+    <div class="card">💻<b>Development</b></div>
+    <div class="card">✍️<b>Writing</b></div>
+    <div class="card">🎨<b>Design</b></div>
+    <div class="card">🛠️<b>Tasks</b></div>
 </div>
 
-<p style="text-align:center; color: #888;">&copy; 2026 Workly Ecosystem</p>
 <div style="text-align:center; padding: 40px 20px;">
     <button onclick="auth()" style="background: #ffa500; color: white; padding: 15px 35px; border: none; border-radius: 30px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 15px rgba(255,165,0,0.3); cursor: pointer;">
         Login with Pi Browser
     </button>
 </div>
 
+<p style="text-align:center; color: #888; font-size: 0.8rem;">&copy; 2026 Workly Ecosystem</p>
+
 <script>
+    // Initializing Pi SDK
     const Pi = window.Pi;
-    Pi.init({ version: "1.5", sandbox: true });
+    Pi.init({ version: "2.0", sandbox: true });
 
     async function auth() {
         try {
@@ -52,14 +55,15 @@
             const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
             alert("Welcome to Workly, " + user.user.username + "!");
         } catch (err) {
-            alert("Please open this link inside the Pi Browser to log in.");
+            // This error happens if you are not in the Pi Browser
+            alert("Please open this link INSIDE the Pi Browser to log in.");
             console.error(err);
         }
     }
 
     function onIncompletePaymentFound(payment) {
         console.log("Incomplete payment found", payment);
-    };
+    }
 </script>
 </body>
 </html>
