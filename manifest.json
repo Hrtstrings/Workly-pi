@@ -1,0 +1,9 @@
+{
+  "name": "Workly",
+  "short_name": "Workly",
+  "description": "Freelance marketplace for the Pi Ecosystem",
+  "start_url": "https://hrtstrings.github.io/Workly-pi/",
+  "display": "standalone",
+  "background_color": "#673ab7",
+  "theme_color": "#673ab7"
+}
