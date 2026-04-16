@@ -14,7 +14,7 @@
         .card { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .card i { font-size: 2rem; display: block; margin-bottom: 10px; }
     </style>
-</head>
+</head><script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <body>
 
 <header>
@@ -36,6 +36,30 @@
 </div>
 
 <p style="text-align:center; color: #888;">&copy; 2026 Workly Ecosystem</p>
+<div style="text-align:center; padding: 40px 20px;">
+    <button onclick="auth()" style="background: #ffa500; color: white; padding: 15px 35px; border: none; border-radius: 30px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 15px rgba(255,165,0,0.3); cursor: pointer;">
+        Login with Pi Browser
+    </button>
+</div>
 
+<script>
+    const Pi = window.Pi;
+    Pi.init({ version: "1.5", sandbox: true });
+
+    async function auth() {
+        try {
+            const scopes = ['username', 'payments'];
+            const user = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            alert("Welcome to Workly, " + user.user.username + "!");
+        } catch (err) {
+            alert("Please open this link inside the Pi Browser to log in.");
+            console.error(err);
+        }
+    }
+
+    function onIncompletePaymentFound(payment) {
+        console.log("Incomplete payment found", payment);
+    };
+</script>
 </body>
 </html>
