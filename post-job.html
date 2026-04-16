@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post a Job | Workly</title>
+    <style>
+        :root { --pi-purple: #632d95; --pi-gold: #ffa500; }
+        body { font-family: sans-serif; margin: 0; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { color: var(--pi-purple); text-align: center; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+        input, textarea, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-submit { background: var(--pi-purple); color: white; border: none; width: 100%; padding: 15px; margin-top: 25px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Post a New Job</h2>
+    <form id="jobForm">
+        <label>Job Title</label>
+        <input type="text" placeholder="e.g. Design a Logo for my Pi Shop" required>
+
+        <label>Category</label>
+        <select>
+            <option>Development</option>
+            <option>Writing</option>
+            <option>Design</option>
+            <option>General Tasks</option>
+        </select>
+
+        <label>Description</label>
+        <textarea rows="5" placeholder="Describe the task in detail..."></textarea>
+
+        <label>Budget (Pi)</label>
+        <input type="number" placeholder="0.00" step="0.01" required>
+
+        <button type="submit" class="btn-submit">Post Job Listing</button>
+    </form>
+    <a href="index.html" class="back-link">← Back to Home</a>
+</div>
+
+</body>
+</html>
