@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post a Job | Workly</title>
+    <!-- Pi SDK must load before any other scripts -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         :root { --pi-purple: #632d95; --pi-gold: #ffa500; }
@@ -99,12 +100,26 @@
             margin-top: 5px; 
             display: none; 
         }
+        .pi-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Post a New Job</h2>
+    
+    <!-- Warning for non-Pi Browser users -->
+    <div id="piWarning" class="pi-warning">
+        ⚠️ Please open this app in Pi Browser to make payments.
+    </div>
     
     <form id="jobForm" onsubmit="event.preventDefault(); payAndPost();">
         <label for="jobTitle">Job Title *</label>
@@ -148,27 +163,36 @@
 </div>
 
 <script>
-    // Pi SDK Initialization
-    window.onload = function() {
+    // Global Pi variable
+    let Pi = null;
+    let isPiBrowser = false;
+
+    // Initialize Pi SDK immediately when script loads
+    function initializePiSDK() {
         if (typeof window.Pi !== 'undefined') {
+            Pi = window.Pi;
+            isPiBrowser = true;
+            
             try {
-                window.Pi.init({ 
-                    version: "2.0.0",
-                    sandbox: true,
-                    onIncompletePaymentFound: function(payment) {
-                        console.log("Incomplete payment found:", payment);
-                        alert("You have an incomplete payment. Please complete it first.");
-                    }
+                Pi.init({ 
+                    version: "2.0",
+                    sandbox: true
                 });
-                console.log("Pi SDK initialized");
+                console.log("Pi SDK initialized successfully");
+                return true;
             } catch (err) {
-                console.error("Pi SDK init failed:", err);
+                console.error("Pi SDK initialization failed:", err);
+                return false;
             }
         } else {
-            console.warn("Pi SDK not loaded");
+            console.warn("Pi SDK not available - not in Pi Browser");
+            document.getElementById('piWarning').style.display = 'block';
+            return false;
         }
-        calculateFees();
-    };
+    }
+
+    // Try to initialize immediately
+    initializePiSDK();
 
     function sanitizeInput(str) {
         if (!str) return '';
@@ -207,6 +231,12 @@
             return;
         }
 
+        // Check if Pi SDK is available
+        if (!isPiBrowser || !Pi) {
+            alert("Please open this app in Pi Browser to make payments.");
+            return;
+        }
+
         const totalAmount = budgetValue + (budgetValue * 0.05);
         
         // Disable button to prevent double submission
@@ -214,45 +244,62 @@
         payBtn.textContent = "Processing...";
 
         try {
-            const payment = await window.Pi.createPayment({
-                amount: totalAmount,
-                memo: "Workly Job Listing: " + sanitizeInput(title),
-                metadata: { 
-                    jobTitle: sanitizeInput(title),
-                    category: categoryInput.value,
-                    description: sanitizeInput(descInput.value),
-                    budget: budgetValue,
-                    fee: budgetValue * 0.05
-                }
-            }, {
-                onReadyForServerApproval: function(paymentId) {
-                    console.log("Payment ready for approval:", paymentId);
-                    // TODO: Send paymentId to your backend for approval
-                },
-                onReadyForServerCompletion: function(paymentId, txid) {
-                    console.log("Payment completed:", paymentId, txid);
-                    alert("Success! Your job has been posted.");
-                    // Reset form
-                    document.getElementById('jobForm').reset();
-                    calculateFees();
-                },
-                onCancel: function(paymentId) {
-                    console.log("Payment cancelled:", paymentId);
-                    alert("Payment was cancelled.");
-                },
-                onError: function(error, payment) {
-                    console.error("Payment error:", error);
-                    alert("Payment failed: " + error.message);
-                }
+            // First authenticate with Pi
+            const scopes = ['payments'];
+            
+            Pi.authenticate(scopes, function onIncompletePaymentFound(payment) {
+                console.log("Incomplete payment found:", payment);
+                alert("You have an incomplete payment. Please complete it first.");
+            }).then(function(auth) {
+                console.log("Authenticated:", auth);
+                
+                // Now create payment
+                return Pi.createPayment({
+                    amount: totalAmount,
+                    memo: "Workly Job Listing: " + sanitizeInput(title),
+                    metadata: { 
+                        jobTitle: sanitizeInput(title),
+                        category: categoryInput.value,
+                        description: sanitizeInput(descInput.value),
+                        budget: budgetValue,
+                        fee: budgetValue * 0.05
+                    }
+                }, {
+                    onReadyForServerApproval: function(paymentId) {
+                        console.log("Payment ready for approval:", paymentId);
+                        // TODO: Send paymentId to your backend for approval
+                    },
+                    onReadyForServerCompletion: function(paymentId, txid) {
+                        console.log("Payment completed:", paymentId, txid);
+                        alert("Success! Your job has been posted.");
+                        document.getElementById('jobForm').reset();
+                        calculateFees();
+                    },
+                    onCancel: function(paymentId) {
+                        console.log("Payment cancelled:", paymentId);
+                        alert("Payment was cancelled.");
+                    },
+                    onError: function(error, payment) {
+                        console.error("Payment error:", error);
+                        alert("Payment failed: " + error.message);
+                    }
+                });
+            }).catch(function(error) {
+                console.error("Authentication error:", error);
+                alert("Authentication failed. Please try again.");
             });
+            
         } catch (err) {
             console.error("Payment error:", err);
-            alert("Please open this app in Pi Browser to make payments.");
+            alert("Payment failed. Please ensure you're using Pi Browser.");
         } finally {
             payBtn.disabled = false;
             payBtn.textContent = "Pay & Post Job";
         }
     }
+
+    // Initialize fees on load
+    calculateFees();
 </script>
 
 </body>
