@@ -1,25 +1,77 @@
-// Fix 2: Sanitize input before sending to SDK
-function sanitizeInput(str) {
-    return str.replace(/[<>\"']/g, '').substring(0, 100);
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post a Job | Workly</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        :root { --pi-purple: #632d95; }
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
+        .form-card { background: white; padding: 30px; border-radius: 15px; max-width: 450px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        .pay-btn { background: var(--pi-purple); color: white; border: none; padding: 15px; width: 100%; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        #status { margin-top: 15px; font-size: 0.9rem; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Workly</h1>
+    <div class="form-card">
+        <h3>Post a New Job</h3>
+        <input type="text" id="jobTitle" placeholder="Job Title (e.g., UI Design)">
+        <textarea id="jobDesc" placeholder="Describe the requirements..."></textarea>
+        <input type="number" id="jobBudget" placeholder="Amount in Pi (e.g., 1.5)">
+        
+        <button class="pay-btn" onclick="payAndPost()">Pay & Post Job</button>
+        <div id="status">Ready to post.</div>
+    </div>
 
-metadata: { 
-    jobTitle: sanitizeInput(document.getElementById('jobTitle').value)
-}
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true });
 
-// Fix 3: Register incomplete payment handler
-Pi.init({ 
-    version: "1.5", 
-    sandbox: true,
-    onIncompletePaymentFound: onIncompletePaymentFound  // ADD THIS
-});
+        // Fix 2: Sanitize input
+        function sanitize(str) {
+            return str.replace(/[<>"']/g, "").substring(0, 100);
+        }
 
-// Fix 4: Add validation before payment
-async function payAndPost() {
-    const title = document.getElementById('jobTitle').value.trim();
-    if (!title) {
-        alert("Please enter a job title");
-        return;
-    }
-    // ... rest of function
-}
+        async function payAndPost() {
+            const title = document.getElementById('jobTitle').value.trim();
+            const budget = document.getElementById('jobBudget').value;
+            const status = document.getElementById('status');
+
+            // Fix 4: Validation
+            if (!title || !budget) {
+                alert("Please enter a title and budget.");
+                return;
+            }
+
+            status.innerText = "Initiating Pi Wallet...";
+
+            try {
+                const payment = await Pi.createPayment({
+                    amount: parseFloat(budget),
+                    memo: "Job Post: " + sanitize(title),
+                    metadata: { jobTitle: sanitize(title) },
+                }, {
+                    onReadyForServerApproval: function(paymentId) {
+                        status.innerText = "Payment created. ID: " + paymentId;
+                        console.log("Submit this ID to your backend:", paymentId);
+                        // For Testnet, you can often proceed, but Mainnet requires server verification here.
+                    },
+                    onReadyForServerCompletion: function(paymentId, txid) {
+                        status.innerText = "Payment Successful! TXID: " + txid;
+                        alert("Job Posted Successfully!");
+                        window.location.href = "index.html"; 
+                    },
+                    onCancel: function(paymentId) { status.innerText = "Payment cancelled."; },
+                    onError: function(error, payment) { status.innerText = "Error: " + error.message; }
+                });
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Failed to open wallet.";
+            }
+        }
+    </script>
+</body>
+    </html>
